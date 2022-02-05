@@ -95,7 +95,7 @@ class AudioPlayIntentHandler(AbstractRequestHandler):
         audio_key = "Media/sample3.mp3"
         
         audio_url = create_presigned_url(audio_key)
-        
+        speech_text = "Welcome to my Gurbaani sidak"
         directive = PlayDirective(
             play_behavior=PlayBehavior.REPLACE_ALL,
             audio_item=AudioItem(
