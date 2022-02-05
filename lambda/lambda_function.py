@@ -95,7 +95,6 @@ class AudioPlayIntentHandler(AbstractRequestHandler):
         audio_key = "Media/sample3.mp3"
         
         audio_url = create_presigned_url(audio_key)
-      
         
         directive = PlayDirective(
             play_behavior=PlayBehavior.REPLACE_ALL,
