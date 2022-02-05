@@ -91,8 +91,8 @@ class AudioPlayIntentHandler(AbstractRequestHandler):
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         logger.info("in AudioPlayIntent")
-        speech_text = "Welcome to my audio player"
-        audio_key = "Media/Punjabi Hukam Katha-Ang 616.mp3"
+        speech_text = "Welcome to my Gurbaani"
+        audio_key = "Media/sample3.mp3"
         
         audio_url = create_presigned_url(audio_key)
 
@@ -190,7 +190,7 @@ class PlaybackNearlyFinishedHandler(AbstractRequestHandler):
         # type: (HandlerInput) -> Response
         logger.info("In PlaybackNearlyFinishedHandler")
         
-        audio_key = "Media/Punjabi Hukam Katha-Ang 616.mp3"
+        audio_key = "Media/sample3.mp3"
         
         audio_url = create_presigned_url(audio_key)
 
