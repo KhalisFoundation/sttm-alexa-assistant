@@ -92,7 +92,7 @@ class AudioPlayIntentHandler(AbstractRequestHandler):
         # type: (HandlerInput) -> Response
         logger.info("in AudioPlayIntent")
         speech_text = "Welcome to my audio player"
-        audio_key = "Media/RemovalMen_Borderline.mp3"
+        audio_key = "Media/Punjabi Hukam Katha-Ang 616.mp3"
         
         audio_url = create_presigned_url(audio_key)
 
@@ -190,7 +190,7 @@ class PlaybackNearlyFinishedHandler(AbstractRequestHandler):
         # type: (HandlerInput) -> Response
         logger.info("In PlaybackNearlyFinishedHandler")
         
-        audio_key = "Media/RemovalMen_Borderline.mp3"
+        audio_key = "Media/Punjabi Hukam Katha-Ang 616.mp3"
         
         audio_url = create_presigned_url(audio_key)
 
