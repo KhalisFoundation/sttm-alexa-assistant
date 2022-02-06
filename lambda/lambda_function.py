@@ -56,7 +56,7 @@ class LaunchRequestHandler(AbstractRequestHandler):
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
-        speak_output = "Hello, I can play your music, just say play my music"
+        speak_output = "Waheguru ji da Khalsa, Waheguru ji di fateh. How Can I help you today"
 
         return (
             handler_input.response_builder
