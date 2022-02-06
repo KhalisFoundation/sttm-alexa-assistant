@@ -37,23 +37,18 @@ from ask_sdk_model.interfaces.audioplayer import (
     StopDirective)
 from ask_sdk_model.interfaces import display
 
-small_image_url = create_presigned_url("Media/Note108.png")
-large_image_url = create_presigned_url("Media/Note512.png")
 
 
 audio_data = {
     "card": {
         "title": 'My Hukamnama',
-        "text": 'I like Hukamnama',
+        "text": 'My Hukamnama',
     }
 }
 card = StandardCard(
     title=audio_data["card"]["title"],
     text=audio_data["card"]["text"],
-    image=Image(
-        small_image_url=small_image_url,
-        large_image_url=large_image_url
-    )
+    
 )
 
 class LaunchRequestHandler(AbstractRequestHandler):
