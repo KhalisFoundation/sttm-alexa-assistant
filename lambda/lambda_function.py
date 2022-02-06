@@ -1,12 +1,6 @@
-# -*- coding: utf-8 -*-
 
-# This sample demonstrates handling intents from an Alexa skill using the Alexa Skills Kit SDK for Python.
-# Please visit https://alexa.design/cookbook for additional examples on implementing slots, dialog management,
-# session persistence, api calls, and more.
-# This sample is built using the handler classes approach in skill builder.
-# modified for an Audio skill
-# John Allwork
-# 20 April 2021
+# Gurvinder Singh
+# 5 Feb 2022
 # refernce: https://developer.amazon.com/en-US/docs/alexa/custom-skills/audioplayer-interface-reference.html
 #
 # test              expected
@@ -68,8 +62,8 @@ large_image_url = create_presigned_url("Media/Note512.png")
 
 audio_data = {
     "card": {
-        "title": 'My music',
-        "text": 'I like music',
+        "title": 'Waheguru Gurbani',
+        "text": 'Waheguru Gurbani',
     }
 }
 card = StandardCard(
@@ -90,7 +84,7 @@ class LaunchRequestHandler(AbstractRequestHandler):
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
-        speak_output = "Hello, I can play your music, just say play my music"
+        speak_output = "Waheguru ji da Khalsa, Waheguru ji di fateh. How Can I help you today"
 
         return (
             handler_input.response_builder
@@ -107,7 +101,7 @@ class HelpIntentHandler(AbstractRequestHandler):
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
-        speak_output = "Just say play my music"
+        speak_output = "Just say Hukamnama"
 
         return (
             handler_input.response_builder
@@ -129,7 +123,7 @@ class AudioPlayIntentHandler(AbstractRequestHandler):
         logger.info("in AudioPlayIntent")
         persistence_attr = handler_input.attributes_manager.persistent_attributes
 
-        if (is_intent_name("PlayAudio")(handler_input)):
+        if (is_intent_name("PlayAudio")(handler_input)): # GS Keyword to invoke Hukamnama
             logger.info("play Audio")
             # first time - set track to zero
             track_number = 0
@@ -151,7 +145,7 @@ class AudioPlayIntentHandler(AbstractRequestHandler):
             persistence_attr["playback_settings"]["offset_in_milliseconds"] = 0
             persistence_attr["playback_settings"]["next_stream_enqueued"] = False
             
-            speech_text = "Playing your music"
+            speech_text = "Waheguru Waheguru ...Here is todays Hukamnama"
             directive = PlayDirective(
                 play_behavior=PlayBehavior.REPLACE_ALL,
                 audio_item=AudioItem(
