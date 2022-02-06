@@ -43,8 +43,8 @@ large_image_url = create_presigned_url("Media/Note512.png")
 
 audio_data = {
     "card": {
-        "title": 'My music',
-        "text": 'I like music',
+        "title": 'My Hukamnama',
+        "text": 'I like Hukamnama',
     }
 }
 card = StandardCard(
