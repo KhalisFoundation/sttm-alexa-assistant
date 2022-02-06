@@ -14,19 +14,10 @@
 #   then repeat above tests (next previous startover)
 #   leave to end of music - start from beginning?
 
-import os
-import boto3
-import track_info as trackInfo
-
-from ask_sdk_dynamodb.adapter import DynamoDbAdapter
-
 import logging
 import ask_sdk_core.utils as ask_utils
 
 from utils import create_presigned_url
-
-from ask_sdk_core.dispatch_components import AbstractRequestInterceptor
-from ask_sdk_core.dispatch_components import AbstractResponseInterceptor
 
 from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.dispatch_components import AbstractRequestHandler
@@ -47,23 +38,14 @@ from ask_sdk_model.interfaces.audioplayer import (
     StopDirective)
 from ask_sdk_model.interfaces import display
 
-ddb_region = os.environ.get('DYNAMODB_PERSISTENCE_REGION')
-ddb_table_name = os.environ.get('DYNAMODB_PERSISTENCE_TABLE_NAME')
-
-ddb_resource = boto3.resource('dynamodb', region_name=ddb_region)
-dynamodb_adapter = DynamoDbAdapter(table_name=ddb_table_name, create_table=False, dynamodb_resource=ddb_resource)
-
-from ask_sdk_core.skill_builder import CustomSkillBuilder
-from ask_sdk_dynamodb.adapter import DynamoDbAdapter
-
 small_image_url = create_presigned_url("Media/Note108.png")
 large_image_url = create_presigned_url("Media/Note512.png")
 
 
 audio_data = {
     "card": {
-        "title": 'Waheguru Gurbani',
-        "text": 'Waheguru Gurbani',
+        "title": 'My music',
+        "text": 'I like music',
     }
 }
 card = StandardCard(
@@ -111,86 +93,30 @@ class HelpIntentHandler(AbstractRequestHandler):
         )
 
 class AudioPlayIntentHandler(AbstractRequestHandler):
-    # Handler for Audioplayer Play Intent and RESUME
+    # Handler for Audioplayer Play Intent
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
-        return (is_intent_name("PlayAudio")(handler_input) or
-                is_intent_name("AMAZON.ResumeIntent")(handler_input))
-
+        return is_intent_name("PlayAudio")(handler_input) #GS .. Keyword to invoke GurbaniAudio
         
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         logger.info("in AudioPlayIntent")
-        persistence_attr = handler_input.attributes_manager.persistent_attributes
-
-        if (is_intent_name("PlayAudio")(handler_input)): # GS Keyword to invoke Hukamnama
-            logger.info("play Audio")
-            # first time - set track to zero
-            track_number = 0
-            persistence_attr["track_number"] = track_number
-            
-            card = StandardCard(
-                title=trackInfo.track_info[track_number]["title"],
-                text=trackInfo.track_info[track_number]["artist"],
-                image=Image(
-                    small_image_url=small_image_url,
-                    large_image_url=large_image_url
-                    )
-                )
-
-            audio_key = trackInfo.track_info[track_number]["url"]
-            audio_url = create_presigned_url(audio_key)
-            persistence_attr["playback_settings"]["url"] = audio_url
-            persistence_attr["playback_settings"]["token"] = audio_key
-            persistence_attr["playback_settings"]["offset_in_milliseconds"] = 0
-            persistence_attr["playback_settings"]["next_stream_enqueued"] = False
-            
-            speech_text = "Waheguru Waheguru ...Here is todays Hukamnama"
-            directive = PlayDirective(
-                play_behavior=PlayBehavior.REPLACE_ALL,
-                audio_item=AudioItem(
-                    stream=Stream(
-                        token=audio_key,
-                        url=audio_url,
-                        offset_in_milliseconds=0,
-                        expected_previous_token=None),
-                    metadata=None))
-            handler_input.response_builder.speak(speech_text).set_card(card).add_directive(directive).set_should_end_session(True)        
+        speech_text = "Waheguru Waheguru ...Here is todays Hukamnama"
+        audio_key = "Media/Punjabi Hukam Katha-Ang 616.mp3"
         
-        else:
-            # resume
-            logger.info("Resume")
-            track_number = int(persistence_attr["track_number"])
-            
-            audio_key = trackInfo.track_info[track_number]["url"]
-            audio_url = create_presigned_url(audio_key)
-            persistence_attr["playback_settings"]["url"] = audio_url
-            persistence_attr["playback_settings"]["token"] = audio_key
-            
-            card = StandardCard(
-                title=trackInfo.track_info[track_number]["title"],
-                text=trackInfo.track_info[track_number]["artist"],
-                image=Image(
-                    small_image_url=small_image_url,
-                    large_image_url=large_image_url
-                    )
-                )
+        audio_url = create_presigned_url(audio_key)
+        directive = PlayDirective(
+            play_behavior=PlayBehavior.REPLACE_ALL,
+            audio_item=AudioItem(
+                stream=Stream(
+                    token=audio_key,
+                    url=audio_url,
+                    offset_in_milliseconds=0,
+                    expected_previous_token=None),
+                metadata=None))
+        handler_input.response_builder.speak(speech_text).set_card(card).add_directive(directive).set_should_end_session(True)
 
-            directive = PlayDirective(
-                play_behavior=PlayBehavior.REPLACE_ALL,
-                audio_item=AudioItem(
-                    stream=Stream(
-                        token=audio_key,
-                        url=audio_url,
-                        offset_in_milliseconds=persistence_attr["playback_settings"]["offset_in_milliseconds"],
-                        expected_previous_token=None),
-                    metadata=None))
-
-            handler_input.response_builder.set_card(card).add_directive(directive).set_should_end_session(True)
-            
-        handler_input.attributes_manager.persistent_attributes = persistence_attr
         return handler_input.response_builder.response
-
 
 class AudioStopIntentHandler(AbstractRequestHandler):
     # Handler for Stop – come here on pause or cancel too
@@ -202,15 +128,14 @@ class AudioStopIntentHandler(AbstractRequestHandler):
                 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
-        logger.info("in AudioStopIntent")
-        speech_text = "Paused"
-        # Note when your skill is playing audio, utterances such as 'stop' send your skill an AMAZON.PauseIntent instead of an AMAZON.StopIntent
-        # so you can't easily just say goodbye when user says 'stop'
+        logger.info("in AudioStopIntent and request")
+        logger.info(handler_input.request_envelope.request)
+        speech_text = "Goodbye"
         
         directive = StopDirective()
-        # this causes PlaybackStopped request which saves current offset
 
-        handler_input.response_builder.speak(speech_text).add_directive(directive).set_should_end_session(True)
+        handler_input.response_builder.speak(speech_text).add_directive(
+            directive).set_should_end_session(True)
         return handler_input.response_builder.response
 
 # ########## AUDIOPLAYER INTERFACE HANDLERS #########################
@@ -229,16 +154,13 @@ class PlaybackStartedHandler(AbstractRequestHandler):
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         logger.info("In PlaybackStartedHandler")
-        
 
         return handler_input.response_builder.response
 
 class PlaybackFinishedHandler(AbstractRequestHandler):
     """AudioPlayer.PlaybackFinished Directive received.
-    Sent when the stream Alexa is playing comes to an end on its own.
-    Note: You can't send a new Play directive from here.
-    The response cannot include any standard properties such as outputSpeech, card, or reprompt.
-    Any other AudioPlayer directives. or Any other directives from other interfaces, such a Dialog directive.
+    Confirming that the requested audio file completed playing.
+    Do not send any specific response.
     """
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
@@ -247,58 +169,27 @@ class PlaybackFinishedHandler(AbstractRequestHandler):
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         logger.info("In PlaybackFinishedHandler")
-        # reset any attributes? e.g.
-        persistence_attr = handler_input.attributes_manager.persistent_attributes
-        if persistence_attr["playback_settings"]["next_stream_enqueued"] == True:
-            # track ended naturally, enqueued so stored track_number is wrong.
-            persistence_attr["playback_settings"]["next_stream_enqueued"] = False
-            track_number = int(persistence_attr["track_number"])
-            next_track = (track_number  + 1) % len(trackInfo.track_info)
-            persistence_attr["track_number"] = next_track
-            
-        handler_input.attributes_manager.persistent_attributes = persistence_attr
-
         return handler_input.response_builder.response
 
 class PlaybackStoppedHandler(AbstractRequestHandler):
     """AudioPlayer.PlaybackStopped Directive received.
-    Save playback for resume
-    Response example is
-    {
-      "type": "AudioPlayer.PlaybackStopped",
-      "requestId": "unique.id.for.the.request",
-      "timestamp": "timestamp of request in format: 2018-04-11T15:15:25Z",
-      "token": "token representing the currently playing stream",
-      "offsetInMilliseconds": offset in milliseconds,
-      "locale": "a locale code such as en-US"
-    }
+    Confirming that the requested audio file stopped playing.
+    Do not send any specific response.
     """
-    
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
         return is_request_type("AudioPlayer.PlaybackStopped")(handler_input)
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
-        logger.info("In PlaybackStoppedHandler")
+        logger.info("In PlaybackStoppedHandler and request is")
+        logger.info(handler_input.request_envelope.request)
 
-        #  Save playback info: token, index, offset_in_milliseconds for Resume
-
-        persistence_attr = handler_input.attributes_manager.persistent_attributes
-        #track_number = int(persistence_attr["track_number"])
-        persistence_attr["playback_settings"]["offset_in_milliseconds"] = handler_input.request_envelope.request.offset_in_milliseconds
-        #persistence_attr["playback_settings"]["token"] = trackInfo.track_info[track_number]["url"]
-        #persistence_attr["playback_settings"]["url"] = trackInfo.track_info[track_number]["url"]
-        # track_number already saved
-        handler_input.attributes_manager.persistent_attributes = persistence_attr
-        
         return handler_input.response_builder.response
-
 
 class PlaybackNearlyFinishedHandler(AbstractRequestHandler):
     """AudioPlayer.PlaybackNearlyFinished Directive received.
-    # respond to this request with a Play directive for the next stream and set ENQUEUE
-    # https://developer.amazon.com/en-US/docs/alexa/custom-skills/audioplayer-interface-reference.html#playbacknearlyfinished
+    Replacing queue with the URL again. This should not happen on live streams.
     """
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
@@ -307,42 +198,21 @@ class PlaybackNearlyFinishedHandler(AbstractRequestHandler):
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         logger.info("In PlaybackNearlyFinishedHandler")
-        persistence_attr = handler_input.attributes_manager.persistent_attributes
-        track_number = int(persistence_attr["track_number"])
-        next_track = (track_number  + 1) % len(trackInfo.track_info)
-        previous_token = persistence_attr["playback_settings"]["token"] 
-        # this the previous token for the next track, i.e. at the moment - it's the current one
-        # see https://developer.amazon.com/en-US/docs/alexa/custom-skills/audioplayer-interface-reference.html#playlist-progression
         
-        track_number = next_track # for consistency
-
-        audio_key = trackInfo.track_info[track_number]["url"]
+        audio_key = "Media/Punjabi Hukam Katha-Ang 616.mp3"
+        
         audio_url = create_presigned_url(audio_key)
 
-        persistence_attr["playback_settings"]["offset_in_milliseconds"] = 0
-        persistence_attr["playback_settings"]["token"] = audio_key
-        persistence_attr["playback_settings"]["url"] = audio_url
-        # if i update persistence_attr["track_number"] here, then start over (and resume and play?) picks up wrong track (the next one)
-        # if not how does the next track know what to play after automatically playing next track from enqueue?        
-        # persistence_attr["track_number"] = track_number
-        persistence_attr["playback_settings"]["next_stream_enqueued"] = True
-        # check this in playbackfinished. If true, then increment next track
-        
-        handler_input.attributes_manager.persistent_attributes = persistence_attr
-        
         directive = PlayDirective(
-            play_behavior=PlayBehavior.ENQUEUE,
+            play_behavior=PlayBehavior.REPLACE_ENQUEUED,
             audio_item=AudioItem(
                 stream=Stream(
                     token=audio_key,
                     url=audio_url,
                     offset_in_milliseconds=0,
-                    expected_previous_token=previous_token),
+                    expected_previous_token=None),
                 metadata=None))     
-        # but next track will have new url, but track_number will be wrong
-        
-        handler_input.response_builder.add_directive(directive).set_should_end_session(True)
-        
+        handler_input.response_builder.set_card(card).add_directive(directive).set_should_end_session(True)
         return handler_input.response_builder.response
 
 class PlaybackFailedHandler(AbstractRequestHandler):
@@ -374,155 +244,6 @@ class ExceptionEncounteredHandler(AbstractRequestHandler):
         logger.info(handler_input.request_envelope)
         return handler_input.response_builder.response
 
-class NextPlaybackHandler(AbstractRequestHandler):
-    """
-    Handles Next Intent
-    """
-    def can_handle(self, handler_input):
-        # type: (HandlerInput) -> bool
-        return (is_intent_name("AMAZON.NextIntent")(handler_input))
-
-    def handle(self, handler_input):
-        # type: (HandlerInput) -> Response
-        logger.info("In NextPlaybackHandler, track number")
-        persistence_attr = handler_input.attributes_manager.persistent_attributes
-        track_number = int(persistence_attr["track_number"])
-        logger.info(track_number)
-        next_track = (track_number  + 1) % len(trackInfo.track_info)
-        persistence_attr["track_number"] = next_track
-        track_number = next_track # for consistency below
-        
-        audio_key = trackInfo.track_info[track_number]["url"]
-        audio_url = create_presigned_url(audio_key) 
-        persistence_attr["playback_settings"]["offset_in_milliseconds"] = 0
-        persistence_attr["playback_settings"]["url"] = audio_url
-        persistence_attr["playback_settings"]["token"] = audio_key
-        persistence_attr["playback_settings"]["next_stream_enqueued"] = False
-        
-        handler_input.attributes_manager.persistent_attributes = persistence_attr
-        
-        card = StandardCard(
-            title=trackInfo.track_info[track_number]["title"],
-            text=trackInfo.track_info[track_number]["artist"],
-            image=Image(
-                small_image_url=small_image_url,
-                large_image_url=large_image_url
-                )
-            )
-        
-        directive = PlayDirective(
-            play_behavior=PlayBehavior.REPLACE_ALL,
-            audio_item=AudioItem(
-                stream=Stream(
-                    token=audio_key,
-                    url=audio_url,
-                    offset_in_milliseconds=0,
-                    expected_previous_token=None),
-                metadata=None))
-
-        handler_input.response_builder.set_card(card).add_directive(directive).set_should_end_session(True)
-        return handler_input.response_builder.response
-
-class PreviousPlaybackHandler(AbstractRequestHandler):
-    """
-    Handler for Playing previous 
-    if already at first track, it just stays there
-    """
-    def can_handle(self, handler_input):
-        # type: (HandlerInput) -> bool
-        return (is_intent_name("AMAZON.PreviousIntent")(handler_input))
-
-    def handle(self, handler_input):
-        # type: (HandlerInput) -> Response
-        logger.info("In PreviousPlaybackHandler")
-        persistence_attr = handler_input.attributes_manager.persistent_attributes
-        track_number = int(persistence_attr["track_number"])
-        next_track = track_number -1
-        if (next_track) <0:
-            next_track = 0
-
-        persistence_attr["track_number"] = next_track
-        track_number = next_track # for consistency below
-        audio_key = trackInfo.track_info[track_number]["url"]
-        audio_url = create_presigned_url(audio_key) 
-        persistence_attr["playback_settings"]["offset_in_milliseconds"] = 0
-        persistence_attr["playback_settings"]["url"] = audio_url
-        persistence_attr["playback_settings"]["token"] = audio_key
-        
-        persistence_attr["playback_settings"]["next_stream_enqueued"] = False
-        # REPLACE_ALL - replace current and enqueued streams
-
-        card = StandardCard(
-            title=trackInfo.track_info[track_number]["title"],
-            text=trackInfo.track_info[track_number]["artist"],
-            image=Image(
-                small_image_url=small_image_url,
-                large_image_url=large_image_url
-                )
-            )
-        
-        handler_input.attributes_manager.persistent_attributes = persistence_attr
-
-        directive = PlayDirective(
-            play_behavior=PlayBehavior.REPLACE_ALL,
-            audio_item=AudioItem(
-                stream=Stream(
-                    token=audio_key,
-                    url=audio_url,
-                    offset_in_milliseconds=0,
-                    expected_previous_token=None),
-                metadata=None))
-
-        handler_input.response_builder.set_card(card).add_directive(directive).set_should_end_session(True)        
-        
-        return handler_input.response_builder.response
-
-class StartOverHandler(AbstractRequestHandler):
-    """Handler for start over."""
-    def can_handle(self, handler_input):
-        # type: (HandlerInput) -> bool
-        return (is_intent_name("AMAZON.StartOverIntent")(handler_input))
-
-    def handle(self, handler_input):
-        # type: (HandlerInput) -> Response
-        # go to beginning of track
-        logger.info("In StartOverHandler")
-        persistence_attr = handler_input.attributes_manager.persistent_attributes
-        track_number = int(persistence_attr["track_number"])
-
-        audio_key = trackInfo.track_info[track_number]["url"]
-        audio_url = create_presigned_url(audio_key) 
-        persistence_attr["playback_settings"]["offset_in_milliseconds"] = 0
-        persistence_attr["playback_settings"]["url"] = audio_url
-        persistence_attr["playback_settings"]["token"] = audio_key
-        
-        persistence_attr["playback_settings"]["next_stream_enqueued"] = False
-        
-        handler_input.attributes_manager.persistent_attributes = persistence_attr
-        
-        card = StandardCard(
-            title=trackInfo.track_info[track_number]["title"],
-            text=trackInfo.track_info[track_number]["artist"],
-            image=Image(
-                small_image_url=small_image_url,
-                large_image_url=large_image_url
-                )
-            )
-        
-        directive = PlayDirective(
-            play_behavior=PlayBehavior.REPLACE_ALL,
-            audio_item=AudioItem(
-                stream=Stream(
-                    token=audio_key,
-                    url=audio_url,
-                    offset_in_milliseconds=0,
-                    expected_previous_token=None),
-                metadata=None))
-
-        handler_input.response_builder.set_card(card).add_directive(directive).set_should_end_session(True)
-        
-        return handler_input.response_builder.response
-    
 # ###################################################################
 
 class SessionEndedRequestHandler(AbstractRequestHandler):
@@ -575,6 +296,9 @@ class CatchAllExceptionHandler(AbstractExceptionHandler):
         logger.error(exception, exc_info=True)
         logger.info("exception")
         logger.info(exception)
+        #logger.info(ask_utils.get_intent_name(handler_input))
+        #The provided request is not an IntentRequest
+        logger.info(ask_utils.get_request_type(handler_input))
 
         speak_output = "Sorry, I had trouble doing what you asked. Please try again."
 
@@ -585,45 +309,6 @@ class CatchAllExceptionHandler(AbstractExceptionHandler):
                 .response
         )
 
-# ###################  INTERCEPTORS  ############################ 
-
-class LoadPersistenceAttributesRequestInterceptor(AbstractRequestInterceptor):
-    #Check if user is invoking skill for first time and initialize preset
-    def process(self, handler_input):
-        # type: (HandlerInput) -> None
-        #handler_input.attributes_manager.delete_persistent_attributes()
-        
-        persistence_attr = handler_input.attributes_manager.persistent_attributes
-        
-        if len(persistence_attr) == 0:
-            logger.info("Create attributes")
-            # First time skill user
-            persistence_attr["playback_settings"] = {
-                "token": None,
-                "offset_in_milliseconds": 0,
-                "url" : None,
-                "next_stream_enqueued" : False
-            }
-            
-            persistence_attr["track_number"] = 0
-
-        else:
-            # Convert decimals to integers, because of AWS SDK DynamoDB issue
-            # https://github.com/boto/boto3/issues/369
-            pass
-
-        
-        return    
-
-class SavePersistenceAttributesResponseInterceptor(AbstractResponseInterceptor):
-    #Save persistence attributes before sending response to user.
-    def process(self, handler_input, response):
-        # type: (HandlerInput, Response) -> None
-        
-        handler_input.attributes_manager.persistent_attributes = persistence_attr
-        handler_input.attributes_manager.save_persistent_attributes()
-        
-        return
 
 # The SkillBuilder object acts as the entry point for your skill, routing all request and response
 # payloads to the handlers above. Make sure any new handlers or interceptors you've
@@ -631,21 +316,10 @@ class SavePersistenceAttributesResponseInterceptor(AbstractResponseInterceptor):
 
 sb = SkillBuilder()
 
-sb = CustomSkillBuilder(persistence_adapter = dynamodb_adapter)
-
-# Interceptors
-sb.add_global_request_interceptor(LoadPersistenceAttributesRequestInterceptor())
-sb.add_global_response_interceptor(SavePersistenceAttributesResponseInterceptor())
-
 sb.add_request_handler(LaunchRequestHandler())
 sb.add_request_handler(HelpIntentHandler())
 sb.add_request_handler(AudioPlayIntentHandler())
 sb.add_request_handler(AudioStopIntentHandler())
-sb.add_request_handler(NextPlaybackHandler())
-sb.add_request_handler(PreviousPlaybackHandler())
-sb.add_request_handler(StartOverHandler())
-
-
 # ########## AUDIOPLAYER INTERFACE HANDLERS #########################
 sb.add_request_handler(PlaybackStartedHandler())
 sb.add_request_handler(PlaybackFinishedHandler())
@@ -659,3 +333,4 @@ sb.add_request_handler(IntentReflectorHandler()) # make sure IntentReflectorHand
 sb.add_exception_handler(CatchAllExceptionHandler())
 
 lambda_handler = sb.lambda_handler()
+
