@@ -96,7 +96,7 @@ class AudioPlayIntentHandler(AbstractRequestHandler):
         speech_text = "Welcome to my Gurbaani sidak"
         
         #audio_url = create_presigned_url(audio_key)
-        audio_url = '<audio src="\https://862f010f-7f2e-4525-a74f-ac927c976086-us-east-1.s3.amazonaws.com/Media/Punjabi+Hukam+Katha-Ang+616.mp3\" />'
+        audio_url = '<audio src=\"https://862f010f-7f2e-4525-a74f-ac927c976086-us-east-1.s3.amazonaws.com/Media/Punjabi+Hukam+Katha-Ang+616.mp3\" />'
         speech_text = "Welcome to my Gurbaani sidak2"
         directive = PlayDirective(
             play_behavior=PlayBehavior.REPLACE_ALL,
