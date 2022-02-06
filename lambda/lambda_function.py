@@ -86,7 +86,7 @@ class AudioPlayIntentHandler(AbstractRequestHandler):
     # Handler for Audioplayer Play Intent
     def can_handle(self, handler_input):
         # type: (HandlerInput) -> bool
-        return is_intent_name("Hukamnama")(handler_input) #GS .. Keyword to invoke GurbaniAudio
+        return is_intent_name("PlayHukamnama")(handler_input) #GS .. Keyword to invoke GurbaniAudio
         
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
