@@ -91,7 +91,7 @@ class AudioPlayIntentHandler(AbstractRequestHandler):
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         logger.info("in AudioPlayIntent")
-        speech_text = "Waheguru Waheguru ...Here is todays Gurbaani"
+        speech_text = "Waheguru Waheguru ...Here is todays Hukamnama"
         audio_key = "Media/Punjabi Hukam Katha-Ang 616.mp3"
         
         audio_url = create_presigned_url(audio_key)
