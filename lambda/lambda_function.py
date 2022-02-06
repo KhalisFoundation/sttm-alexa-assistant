@@ -73,7 +73,7 @@ class HelpIntentHandler(AbstractRequestHandler):
 
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
-        speak_output = "Just say play Hukamnama"
+        speak_output = "Just say Hukamnama"
 
         return (
             handler_input.response_builder
