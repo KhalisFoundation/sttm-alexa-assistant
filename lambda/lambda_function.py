@@ -91,12 +91,10 @@ class AudioPlayIntentHandler(AbstractRequestHandler):
     def handle(self, handler_input):
         # type: (HandlerInput) -> Response
         logger.info("in AudioPlayIntent")
-        speech_text = "Welcome to my Gurbaani"
+        speech_text = "Waheguru Waheguru ...Here is todays Gurbaani"
         audio_key = "Media/Punjabi Hukam Katha-Ang 616.mp3"
-        speech_text = "Welcome to my Gurbaani sidak"
         
         audio_url = create_presigned_url(audio_key)
-        speech_text = "Welcome to my Gurbaani sidak2"
         directive = PlayDirective(
             play_behavior=PlayBehavior.REPLACE_ALL,
             audio_item=AudioItem(
