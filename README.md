@@ -1,1 +1,0 @@
-# sttm-alexa-assistant
