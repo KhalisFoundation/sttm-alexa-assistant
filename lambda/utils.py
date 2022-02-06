@@ -5,8 +5,7 @@ from botocore.exceptions import ClientError
 
 
 def create_presigned_url(object_name):
-    """Generate a presigned URL to share an S3 object with a capped expiration of 600 seconds
-
+    """Generate a presigned URL to share an S3 object with a capped expiration of 60 seconds
     :param object_name: string
     :return: Presigned URL as string. If error, returns None.
     """
