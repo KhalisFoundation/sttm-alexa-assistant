@@ -3,7 +3,6 @@
 # 5 Feb 2022
 # refernce: https://developer.amazon.com/en-US/docs/alexa/custom-skills/audioplayer-interface-reference.html
 #
-# test              expected
 #   play my music   starts from track 0
 #   next            plays next track
 #   previous         plays previous track
