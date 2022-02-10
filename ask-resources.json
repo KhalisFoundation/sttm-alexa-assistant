@@ -1,0 +1,11 @@
+{
+  "askToolkitResourcesVersion": "2020-04-15",
+  "profiles": {
+    "GurBaani": {
+      "skillId": "amzn1.ask.skill.ee6a11ee-948b-4c2a-9d51-ca57cf67a4bf",
+      "skillInfrastructure": {
+        "type": "@ask-cli/hosted-skill-deployer"
+      }
+    }
+  }
+}
