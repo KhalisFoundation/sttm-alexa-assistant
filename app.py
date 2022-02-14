@@ -15,6 +15,7 @@ def hello_world():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     req = request.get_json(silent=True, force=True)
+    print(f"request_json:{req}")
     type = req.get('request').get('type')
     json = {
             "version": "1.0",
