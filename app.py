@@ -9,7 +9,11 @@ app = Flask(__name__)
 logging.getLogger("flask_ask").setLevel(logging.DEBUG)
 
 @app.route('/')
-def launch():
+def hello_world():
+    return 'Hello, World!'
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
     req = request.get_json(silent=True, force=True)
     type = req.get('type')
     json = {
