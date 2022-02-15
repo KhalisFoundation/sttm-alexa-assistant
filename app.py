@@ -16,7 +16,8 @@ def hello_world():
 def webhook():
     req = request.get_json(silent=True, force=True)
     print(f"request_json:{req}")
-    type = req.get('type')
+    logging.error(req)
+    type = req['type'] if (req['type'] is None) else req['request']['type']
     json = {
             "version": "1.0",
             "response": {
